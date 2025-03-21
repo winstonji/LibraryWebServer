@@ -81,11 +81,19 @@ namespace LibraryWebServer.Controllers
         [HttpPost]
         public ActionResult AllTitles()
         {
-
             // TODO: Implement
-
-            return Json( null );
-
+            using (Team157LibraryContext db = new Team157LibraryContext()) {
+                var query = from t in db.Titles
+                            join i in db.Inventory on t.Isbn equals i.Isbn into ti
+                            from x in ti.DefaultIfEmpty()
+                            join c in db.CheckedOut on x.Serial equals c.Serial into cti
+                            from y in cti.DefaultIfEmpty()
+                            join p in db.Patrons on y.CardNum equals p.CardNum into pcti
+                            from z in pcti.DefaultIfEmpty()
+                            select
+                            new {isbn = t.Isbn, title = t.Title, author = t.Author, serial = (uint?)x.Serial , name = z.Name ?? ""};
+            return Json( query.ToArray() );
+            }
         }
 
         /// <summary>
