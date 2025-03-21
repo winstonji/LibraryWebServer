@@ -34,6 +34,15 @@ namespace LibraryWebServer.Controllers
             // TODO: Fill in. Determine if login is successful or not.
             bool loginSuccessful = false;
 
+            using (Team157LibraryContext db = new Team157LibraryContext())
+            {
+                var query = from p in db.Patrons where p.Name == name && p.CardNum == cardnum select p;
+                if (query.Any())
+                {
+                    loginSuccessful = true;
+                }
+            }
+
             if ( !loginSuccessful )
             {
                 return Json( new { success = false } );
