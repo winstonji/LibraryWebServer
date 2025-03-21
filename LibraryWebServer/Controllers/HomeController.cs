@@ -108,7 +108,16 @@ namespace LibraryWebServer.Controllers
         public ActionResult ListMyBooks()
         {
             // TODO: Implement
-            return Json( null );
+            using (Team157LibraryContext db = new Team157LibraryContext())
+            {
+                var query = from t in db.Titles
+                            join i in db.Inventory on t.Isbn equals i.Isbn
+                            join c in db.CheckedOut on i.Serial equals c.Serial
+                            where c.CardNum == card
+                            select
+                            new {title = t.Title, author = t.Author, serial = i.Serial};
+                return Json(query.ToArray());
+            }
         }
 
 
@@ -124,9 +133,15 @@ namespace LibraryWebServer.Controllers
         public ActionResult CheckOutBook( int serial )
         {
             // You may have to cast serial to a (uint)
-
-
-            return Json( new { success = true } );
+            using (Team157LibraryContext db = new Team157LibraryContext())
+            {
+                CheckedOut x = new CheckedOut();
+                x.CardNum = (uint)card;
+                x.Serial = (uint)serial;
+                db.CheckedOut.Add(x);
+                db.SaveChanges();
+                return Json( new { success = true } );
+            }
         }
 
         /// <summary>
@@ -140,8 +155,15 @@ namespace LibraryWebServer.Controllers
         public ActionResult ReturnBook( int serial )
         {
             // You may have to cast serial to a (uint)
-
-            return Json( new { success = true } );
+            using (Team157LibraryContext db = new Team157LibraryContext())
+            {
+                var query = from c in db.CheckedOut
+                            where c.Serial == serial && c.CardNum == card
+                            select c;
+                db.CheckedOut.RemoveRange(query);
+                db.SaveChanges();
+                return Json( new { success = true } );
+            }
         }
 
 
